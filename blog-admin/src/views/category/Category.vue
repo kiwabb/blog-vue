@@ -196,7 +196,7 @@ export default {
         return false;
       }
       this.$axios
-          .put("/admin/category/addCategory", this.categoryForm)
+          .put("/api/admin/category/addCategory", this.categoryForm)
           .then(({data}) => {
             if (!data.code) {
               message.success(data.msg);
@@ -209,7 +209,7 @@ export default {
     },
     listCategories() {
       this.$axios
-          .get("/admin/category/allCategory", {
+          .get("/api/admin/category/allCategory", {
             params: {
               page: this.page,
               size: this.size,
@@ -232,7 +232,7 @@ export default {
       } else {
         param = { data: [id] };
       }
-      this.$axios.delete("/admin/category/deleteCategory", param).then(({ data }) => {
+      this.$axios.delete("/api/admin/category/deleteCategory", param).then(({ data }) => {
         if (!data.code) {
           message.success(data.msg);
           this.listCategories();

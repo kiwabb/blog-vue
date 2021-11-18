@@ -178,7 +178,7 @@ export default {
       } else {
         param = { data: [id] };
       }
-      this.$axios.delete("/admin/tag/deleteTag", param).then(({ data }) => {
+      this.$axios.delete("/api/admin/tag/deleteTag", param).then(({ data }) => {
         if (!data.code) {
           message.success(data.msg)
           this.listTags();
@@ -191,7 +191,7 @@ export default {
 
     listTags() {
       this.$axios
-          .get("/admin/tag/allTag", {
+          .get("/api/admin/tag/allTag", {
             params: {
               page: this.current,
               size: this.size,
@@ -205,7 +205,6 @@ export default {
           });
     },
     openModel(tag) {
-      console.log(111111111111);
       if (tag != null) {
         this.tagForm = JSON.parse(JSON.stringify(tag));
         this.$refs.tagTitle.innerHTML = "修改标签";
@@ -221,7 +220,7 @@ export default {
         message.error("标签名不能为空");
         return false;
       }
-      this.$axios.put("/admin/tag/addTag", this.tagForm).then(({ data }) => {
+      this.$axios.put("/api/admin/tag/addTag", this.tagForm).then(({ data }) => {
         if (!data.code) {
           message.success(data.msg)
           this.listTags();

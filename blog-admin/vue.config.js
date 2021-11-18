@@ -31,6 +31,15 @@ module.exports = {
                 pathRewrite: {
                     '^/api': ''
                 }
+            },
+            '/oss': {
+                target: 'http://127.0.0.1:10000/',
+                secure: false,
+                ws: true,
+                changeOrigin: true,
+                pathRewrite: {
+                    '^/oss': ''
+                }
             }
         }
     },

@@ -7,10 +7,13 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "@kangc/v-md-editor": "^2.3.12",
     "axios": "^0.24.0",
+    "babel-plugin-prismjs": "^2.1.0",
     "core-js": "^3.6.5",
     "element-plus": "^1.1.0-beta.24",
     "moment": "^2.29.1",
+    "prismjs": "^1.25.0",
     "vue": "^3.0.0",
     "vue-axios": "^3.3.7",
     "vue-demi": "^0.11.4",
