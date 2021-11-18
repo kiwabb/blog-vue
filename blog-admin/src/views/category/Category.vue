@@ -152,7 +152,7 @@ export default {
       isDelete: false,
       loading: true,
       addOrEdit: false,
-      keywords: null,
+      keywords: '',
       categoryIdList: [],
       categoryList: [],
       categoryForm: {
@@ -245,7 +245,15 @@ export default {
     },
     deleteRow(index, rows) {
       rows.splice(index, 1)
-    }
+    },
+    sizeChange(size) {
+      this.size = size;
+      this.listTags();
+    },
+    currentChange(current) {
+      this.current = current;
+      this.listTags();
+    },
   }
 }
 </script>
