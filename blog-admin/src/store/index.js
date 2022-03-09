@@ -11,7 +11,8 @@ export default createStore({
     nickname: null,
     intro: null,
     webSite: null,
-    userMenuList: []
+    userMenuList: [],
+    token: ''
   },
   mutations: {
     saveTab(state, tab) {
@@ -22,6 +23,10 @@ export default createStore({
     trigger(state) {
       state.collapse = !state.collapse;
     },
+    setToken(state, token) {
+      state.token = token
+      localStorage.setItem("token", token)
+    }
   },
   actions: {
 

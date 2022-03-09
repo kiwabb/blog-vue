@@ -30,7 +30,16 @@
           <i class="el-icon-location"></i>
           标签管理
         </el-menu-item>
-
+      </el-sub-menu>
+      <el-sub-menu index="2">
+        <template #title>
+          <i class="el-icon-location"></i>
+          <span>权限管理</span>
+        </template>
+        <el-menu-item index="menu">
+          <i class="el-icon-location"></i>
+          菜单管理
+        </el-menu-item>
       </el-sub-menu>
     </el-menu>
   </el-scrollbar>

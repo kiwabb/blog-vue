@@ -226,7 +226,6 @@ export default {
     },
     deleteCategory(id) {
       let param = {};
-      console.log(id);
       if (id == null) {
         param = {data: this.categoryIdList};
       } else {

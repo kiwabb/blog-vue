@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <index/>
-
+<!--    <index/>-->
+  <router-view/>
   </div>
 </template>
 
@@ -9,7 +9,6 @@
   import index from "@/components/index"
   export default {
     created() {
-      console.log(111111);
     },
     components: {
       index

@@ -11,14 +11,15 @@
           type="danger"
           size="medium"
           class="save-btn"
-          v-if="article.isDraft !== 0"
+          v-if="article.draft !== 0"
+          @click="saveArticleDraft"
       >
         保存草稿
       </el-button>
       <el-button
         type="danger"
         size="medium"
-        @click="addOrEdit = true"
+        @click="openDialog"
         style="margin-left:10px">
         发布文章
       </el-button>
@@ -28,7 +29,8 @@
         v-model="article.articleContent"
         height="calc(100vh - 260px)">
     </v-md-editor>
-    <el-dialog v-model="addOrEdit" width="40%" top="10vh">
+
+    <el-dialog v-model="addOrEdit" width="45%" top="10vh">
      <template #title>
        <div class="dialog-title-container">
          上传文章
@@ -62,11 +64,13 @@
         </el-form-item>
         <el-form-item label="上传封面">
           <el-upload
-              class="upload-cover"
-              drag
-              action="/oss/blog/upload"
-              multiple
-              :on-success="uploadCover"
+            :limit="1"
+            class="upload-cover"
+            drag
+            action="/oss/blog/upload"
+            multiple
+            :on-success="uploadCover"
+            :on-error="uploadError"
           >
             <i class="el-icon-upload" v-if="article.articleCover === ''" />
             <div class="el-upload__text" v-if="article.articleCover === ''">
@@ -82,7 +86,7 @@
         </el-form-item>
         <el-form-item label="置顶">
           <el-switch
-              v-model="article.isTop"
+              v-model="article.top"
               active-color="#13ce66"
               inactive-color="#F4F4F5"
               :active-value="1"
@@ -102,6 +106,8 @@
 </template>
 
 <script>
+import message from "@/assets/js/message";
+
 export default {
   data: function() {
     return {
@@ -114,17 +120,78 @@ export default {
         articleTitle: "",
         articleContent: "",
         articleCover: "",
-        categoryId: null,
+        categoryId: "",
         tagIdList: [],
-        isTop: 0,
-        isDraft: null
+        top: 0,
+        draft: ""
       }
     };
   },
   created() {
-    this.initCategoryTagList();
+    let articleId = this.$route.params.id
+    if (articleId) {
+      this.$axios.get("/api/admin/articles/" + articleId).then(({ data }) => {
+        this.article = data.data;
+      });
+    } else {
+      // const article = sessionStorage.getItem("article");
+      // if (article) {
+      //   this.article = JSON.parse(article);
+      // }
+    }
+  },
+  destroyed() {
+    //文章自动保存功能
+    this.autoSaveArticle();
   },
   methods: {
+    saveArticleDraft() {
+      if (this.article.articleTitle.trim() === "") {
+        message.error("文章标题不能为空");
+        return false;
+      }
+      if (this.article.articleContent.trim() === "") {
+        message.error("文章内容不能为空");
+        return false;
+      }
+      this.article.draft = 1;
+      this.axios.post("/api/admin/articles", this.article).then(({ data }) => {
+        if (!data.code) {
+          message.success("保存草稿成功"
+          );
+        } else {
+          message.error( "保存草稿失败"
+          );
+        }
+      });
+      //关闭自动保存功能
+      this.autoSave = false;
+    },
+    autoSaveArticle() {
+      // 自动上传文章
+      if (
+          this.autoSave &&
+          this.article.articleTitle.trim() !== "" &&
+          this.article.articleContent.trim() !== "" &&
+          this.article.id != null
+      ) {
+        this.axios
+            .post("/api/admin/articles", this.article)
+            .then(({ data }) => {
+              if (!data.code) {
+                message.success("自动保存成功"
+                );
+              } else {
+                message.error("自动保存失败"
+                );
+              }
+            });
+      }
+      // 保存本地文章记录
+      if (this.autoSave && this.article.id == null) {
+        sessionStorage.setItem("article", JSON.stringify(this.article));
+      }
+    },
     initCategoryTagList() {
       this.$axios.get("/api/admin/category/allCategory").then(({data}) => {
         this.categoryList = data.data;
@@ -136,6 +203,55 @@ export default {
     uploadCover(response) {
       this.article.articleCover = response.data;
     },
+    uploadError() {
+      message.error("文件上传错误！")
+    },
+    //打开添加文章弹窗
+    openDialog() {
+      if (this.article.articleTitle.trim() === "") {
+        message.error("文章标题不能为空");
+        return false;
+      }
+      if (this.article.articleContent.trim() === "") {
+        message.error("文章内容不能为空");
+        return false;
+      }
+      this.addOrEdit = true;
+      this.initCategoryTagList();
+    },
+    //保存或修改文章
+    saveOrUpdateArticle() {
+      if (this.article.articleTitle.trim() === "") {
+        message.error("文章标题不能为空");
+        return false;
+      }
+      if (this.article.articleContent.trim() === "") {
+        message.error("文章内容不能为空");
+        return false;
+      }
+      if (this.article.categoryName === null) {
+        message.error("文章分类不能为空");
+        return false;
+      }
+      if (this.article.tagIdList.length === 0) {
+        message.error("文章标签不能为空");
+        return false;
+      }
+      this.$axios.post("/api/admin/articles", this.article).then(({ data }) => {
+        if (!data.code) {
+          message.success({
+            title: "成功",
+            message: data.message
+          });
+        } else {
+          message.error({
+            title: "失败",
+            message: data.message
+          });
+        }
+        this.addOrEdit = false;
+      });
+    }
   }
 }
 </script>
