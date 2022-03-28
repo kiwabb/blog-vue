@@ -40,11 +40,11 @@
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
     >
       <!-- 菜单名称 -->
-      <el-table-column prop="name" label="菜单名称" width="140" />
+      <el-table-column prop="menuName" label="菜单名称" width="140" />
       <!-- 菜单icon -->
       <el-table-column prop="icon" align="center" label="图标" width="100">
         <template #default="scope">
-          <i :class="'iconfont ' + scope.row.icon" />
+          <i :class="'iconfont ' + scope.row.menuIcon" />
         </template>
       </el-table-column>
       <!-- 菜单排序 -->
@@ -55,9 +55,9 @@
           width="100"
       />
       <!-- 访问路径 -->
-      <el-table-column prop="path" label="访问路径" />
+      <el-table-column prop="menuPath" label="访问路径" />
       <!-- 组件路径 -->
-      <el-table-column prop="component" label="组件路径" />
+      <el-table-column prop="menuComponent" label="组件路径" />
       <!-- 是否隐藏 -->
       <el-table-column prop="isHidden" label="隐藏" align="center" width="80">
         <template #default="scope">
@@ -130,9 +130,11 @@
               style="margin-left:10px"
               @confirm="deleteMenu(scope.row.id)"
           >
-            <el-button size="mini" type="text" slot="reference">
-              <i class="el-icon-delete" /> 删除
-            </el-button>
+            <template #reference>
+              <el-button size="mini" type="text">
+                <i class="el-icon-delete" /> 删除
+              </el-button>
+            </template>
           </el-popconfirm>
         </template>
       </el-table-column>
@@ -181,7 +183,7 @@
           </el-popover>
         </el-form-item>
         <!-- 组件路径 -->
-        <el-form-item label="组件路径" v-show="!isCatalog" prop="menuComponent">
+        <el-form-item label="组件路径" v-show="!isCatalog">
           <el-input v-model="menuForm.menuComponent" style="width:220px" />
         </el-form-item>
         <!-- 路由地址 -->
@@ -237,7 +239,8 @@ export default {
         menuPath: "",
         orderNum: 1,
         parentId: null,
-        isHidden: 0
+        isHidden: 0,
+        isDisable: 0
       },
       iconList: [
         "icon-shouye",
@@ -253,11 +256,13 @@ export default {
       ],
       rules : {
         menuName: [{ required: true, message: '菜单名不能为空！', trigger: blur }],
-        menuComponent: [{ required: true, message: '菜单名不能为空！', trigger: blur }],
-        menuIcon: [{ required: true, message: '菜单名不能为空！', trigger: blur }],
-        menuPath: [{ required: true, message: '菜单名不能为空！', trigger: blur }],
+        menuIcon: [{ required: true, message: '图标不能为空！', trigger: blur }],
+        menuPath: [{ required: true, message: '路径不能为空！', trigger: blur }],
       }
     };
+  },
+  created() {
+    this.listMenus();
   },
   methods: {
     openModel(menu, type) {
@@ -268,13 +273,14 @@ export default {
           case 1:
             this.menuForm = {
               id: null,
-              name: "",
-              icon: "",
-              component: "",
-              path: "",
+              menuName: "",
+              menuIcon: "",
+              menuComponent: "",
+              menuPath: "",
               orderNum: 1,
-              parentId: null,
-              isHidden: 0
+              parentId: 0,
+              isHidden: 0,
+              isDisable: 0,
             };
             this.menuTitle = "新增菜单";
             this.menuForm.parentId = JSON.parse(JSON.stringify(menu.id));
@@ -282,6 +288,7 @@ export default {
           case 2:
             this.menuTitle = "修改菜单";
             this.menuForm = JSON.parse(JSON.stringify(menu));
+            console.log(this.menuForm);
             break;
         }
       } else {
@@ -289,20 +296,21 @@ export default {
         this.show = true;
         this.menuForm = {
           id: null,
-          name: "",
-          icon: "",
-          component: "Layout",
-          path: "",
+          menuName: "",
+          menuIcon: "",
+          menuComponent: "Layout",
+          menuPath: "",
           orderNum: 1,
-          parentId: null,
-          isHidden: 0
+          parentId: 0,
+          isHidden: 0,
+          isDisable: 0
         };
       }
       this.addMenu = true;
     },
     listMenus() {
       this.$axios
-          .get("/api/auth/menu", {
+          .get("/api/user/menu", {
             params: {
               keywords: this.keywords
             }
@@ -313,10 +321,10 @@ export default {
           });
     },
     checkIcon(icon) {
-      this.menuForm.icon = icon;
+      this.menuForm.menuIcon = icon;
     },
     changeHidden(row) {
-      this.$axios.post("/api/auth/hidden", {
+      this.$axios.post("/api/user/hidden", {
         params: {
           id: row.id,
           isHidden: row.isHidden
@@ -359,8 +367,8 @@ export default {
     saveOrUpdateMenu(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.axios.post("/api/auth/menu", this.menuForm).then(({ data }) => {
-            if (data.flag) {
+          this.$axios.post("/api/user/menu", this.menuForm).then(({ data }) => {
+            if (data.code === 0) {
               ElMessage.success("操作成功！");
               this.listMenus();
             } else {

@@ -44,6 +44,30 @@ const routes = [
         component: () => import('../views/menu/Menu.vue')
       },
       {
+        path: '/interface',
+        name: 'interface',
+        meta: {name : '接口管理'},
+        component: () => import('../views/interface/Interface.vue')
+      },
+      {
+        path: '/role',
+        name: 'role',
+        meta: {name : '角色管理'},
+        component: () => import('../views/role/Role.vue')
+      },
+      {
+        path: '/user',
+        name: 'user',
+        meta: {name : '用户管理'},
+        component: () => import('../views/user/User.vue')
+      },
+      {
+        path: '/admin-user',
+        name: 'admin-user',
+        meta: {name : '管理员用户管理'},
+        component: () => import('../views/user/AdminUser.vue')
+      },
+      {
         path: '/side',
         name: 'side',
         component: () => import('../components/SideBar.vue')
@@ -53,6 +77,7 @@ const routes = [
         name: 'nav',
         component: () => import('../components/NavBar.vue')
       },
+
     ]
   },
   {
