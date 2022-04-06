@@ -78,7 +78,9 @@
       >
         <template #default="scope">
           <i class="el-icon-time" style="margin-right:5px" />
-          {{ scope.row.createTime | date }}
+          {{
+            this.$filters.dateFormat(scope.row.createTime)
+          }}
         </template>
       </el-table-column>
       <!-- 列操作 -->
@@ -99,9 +101,11 @@
             style="margin-left:10px"
             @confirm="deleteRoles(scope.row.id)"
           >
-            <el-button size="mini" type="text" slot="reference">
-              <i class="el-icon-delete" /> 删除
-            </el-button>
+            <template #reference>
+              <el-button size="mini" type="text">
+                <i class="el-icon-delete" /> 删除
+              </el-button>
+            </template>
           </el-popconfirm>
         </template>
       </el-table-column>
@@ -119,7 +123,7 @@
       layout="total, sizes, prev, pager, next, jumper"
     />
     <!-- 菜单对话框 -->
-    <el-dialog :visible.sync="roleMenu" width="30%">
+    <el-dialog v-model="roleMenu" width="30%">
       <template #title>
         <div class="dialog-title-container"> {{ roleTitle }} </div>
       </template>
@@ -143,7 +147,7 @@
         </el-form-item>
       </el-form>
       <template #footer>
-        <div slot="footer">
+        <div>
           <el-button @click="roleMenu = false">取 消</el-button>
           <el-button type="primary" @click="saveOrUpdateRoleMenu">
             确 定
@@ -253,7 +257,7 @@ export default {
     },
     listRoles() {
       this.$axios
-        .get("/api/admin/roles", {
+        .get("/api/user/role", {
           params: {
             current: this.current,
             size: this.size,
@@ -265,10 +269,10 @@ export default {
           this.count = data.data.count;
           this.loading = false;
         });
-      this.$axios.get("/api/admin/role/resources").then(({ data }) => {
+      this.$axios.get("/api/user/interface/role/interfaces").then(({ data }) => {
         this.resourceList = data.data;
       });
-      this.$axios.get("/api/admin/role/menus").then(({ data }) => {
+      this.$axios.get("/api/user/menu/role/menus").then(({ data }) => {
         this.menuList = data.data;
       });
     },
@@ -279,8 +283,8 @@ export default {
       } else {
         param = { data: [id] };
       }
-      this.$axios.delete("/api/admin/roles", param).then(({ data }) => {
-        if (data.flag) {
+      this.$axios.delete("/api/user/role", param).then(({ data }) => {
+        if (data.code === 0) {
           ElMessage.success(data.message);
           this.listRoles();
         } else {
@@ -316,8 +320,8 @@ export default {
     saveOrUpdateRoleResource() {
       this.roleForm.menuIdList = null;
       this.roleForm.resourceIdList = this.$refs.resourceTree.getCheckedKeys();
-      this.axios.post("/api/admin/role", this.roleForm).then(({ data }) => {
-        if (data.code === 1) {
+      this.$axios.post("/api/user/role", this.roleForm).then(({ data }) => {
+        if (data.code === 0) {
           ElMessage.success(data.message);
           this.listRoles();
         } else {
@@ -339,8 +343,8 @@ export default {
       this.roleForm.menuIdList = this.$refs.menuTree
         .getCheckedKeys()
         .concat(this.$refs.menuTree.getHalfCheckedKeys());
-      this.axios.post("/api/admin/role", this.roleForm).then(({ data }) => {
-        if (data.flag) {
+      this.$axios.post("/api/user/role", this.roleForm).then(({ data }) => {
+        if (data.code === 0) {
           ElMessage.success(data.message);
           this.listRoles();
         } else {

@@ -64,7 +64,7 @@
         align="center"
         width="80"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           <el-tag type="success" v-if="scope.row.loginType === 1">邮箱</el-tag>
           <el-tag v-if="scope.row.loginType === 2">QQ</el-tag>
           <el-tag type="danger" v-if="scope.row.loginType === 3">微博</el-tag>
@@ -124,7 +124,7 @@
         width="130"
         align="center"
       >
-        <template slot-scope="scope">
+        <template #default="scope">
           <i class="el-icon-time" style="margin-right:5px"/>
           {{
             this.$filters.dateFormat(scope.row.lastLoginTime)
@@ -246,7 +246,7 @@ export default {
       this.listUsers();
     },
     changeDisable(user) {
-      this.axios.put("/api/admin/users/disable", {
+      this.axios.put("/api/user/users/disable", {
         id: user.userInfoId,
         isDisable: user.isDisable
       });
@@ -264,11 +264,11 @@ export default {
       this.$axios
         .put("/api/admin/users/role", this.userForm)
         .then(({ data }) => {
-          if (data.code === 1) {
-            ElMessage.success(data.message);
+          if (data.code === 0) {
+            ElMessage.success(data.msg);
             this.listUsers();
           } else {
-            ElMessage.error(data.message);
+            ElMessage.error(data.msg);
           }
           this.isEdit = false;
         });
