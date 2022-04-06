@@ -3,23 +3,16 @@
     <div class="title">{{ this.$route.name }}</div>
     <!-- 表格操作 -->
     <div class="operation-container">
+      <el-button
+          type="primary"
+          size="small"
+          icon="el-icon-plus"
+          @click="openEditModel(null)"
+      >
+        新增
+      </el-button>
       <!-- 条件筛选 -->
       <div style="margin-left:auto">
-        <!-- 登录方式 -->
-        <el-select
-          clearable
-          v-model="loginType"
-          placeholder="请选择登录方式"
-          size="small"
-          style="margin-right:1rem"
-        >
-          <el-option
-            v-for="item in typeList"
-            :key="item.type"
-            :label="item.desc"
-            :value="item.type"
-          />
-        </el-select>
         <el-input
           v-model="keywords"
           prefix-icon="el-icon-search"
@@ -53,23 +46,17 @@
         </template>
       </el-table-column>
       <el-table-column
-        prop="nickname"
+        prop="username"
         label="昵称"
         align="center"
         width="140"
       />
       <el-table-column
-        prop="loginType"
-        label="登录方式"
-        align="center"
-        width="80"
-      >
-        <template #default="scope">
-          <el-tag type="success" v-if="scope.row.loginType === 1">邮箱</el-tag>
-          <el-tag v-if="scope.row.loginType === 2">QQ</el-tag>
-          <el-tag type="danger" v-if="scope.row.loginType === 3">微博</el-tag>
-        </template>
-      </el-table-column>
+          prop="email"
+          label="昵称"
+          align="center"
+          width="140"
+      />
       <el-table-column prop="roleList" label="用户角色" align="center">
         <template #default="scope">
           <el-tag
@@ -94,18 +81,6 @@
         </template>
       </el-table-column>
       <el-table-column
-        prop="ipAddress"
-        label="登录ip"
-        align="center"
-        width="140"
-      />
-      <el-table-column
-        prop="ipSource"
-        label="登录地址"
-        align="center"
-        width="140"
-      />
-      <el-table-column
         prop="createTime"
         label="创建时间"
         width="130"
@@ -119,15 +94,15 @@
         </template>
       </el-table-column>
       <el-table-column
-        prop="lastLoginTime"
-        label="上次登录时间"
-        width="130"
-        align="center"
+          prop="updateTime"
+          label="修改时间"
+          width="130"
+          align="center"
       >
         <template #default="scope">
           <i class="el-icon-time" style="margin-right:5px"/>
           {{
-            this.$filters.dateFormat(scope.row.lastLoginTime)
+            this.$filters.dateFormat(scope.row.updateTime)
           }}
         </template>
       </el-table-column>
@@ -157,7 +132,7 @@
       layout="total, sizes, prev, pager, next, jumper"
     />
     <!-- 修改对话框 -->
-    <el-dialog :visible.sync="isEdit" width="30%">
+    <el-dialog v-model="isEdit" width="30%">
       <template #title>
         <div class="dialog-title-container">
           修改用户
@@ -165,7 +140,10 @@
       </template>
       <el-form label-width="60px" size="medium" :model="userForm">
         <el-form-item label="昵称">
-          <el-input v-model="userForm.nickname" style="width:220px" />
+          <el-input v-model="userForm.username" style="width:220px" />
+        </el-form-item>
+        <el-form-item label="邮箱">
+          <el-input v-model="userForm.email" style="width:220px" />
         </el-form-item>
         <el-form-item label="角色">
           <el-checkbox-group v-model="roleIdList">
@@ -212,20 +190,6 @@ export default {
       userRoleList: [],
       roleIdList: [],
       userList: [],
-      typeList: [
-        {
-          type: 1,
-          desc: "邮箱"
-        },
-        {
-          type: 2,
-          desc: "QQ"
-        },
-        {
-          type: 3,
-          desc: "微博"
-        }
-      ],
       keywords: null,
       current: 1,
       size: 10,
