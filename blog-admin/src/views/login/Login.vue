@@ -7,7 +7,7 @@
           status-icon
           :model="loginForm"
           :rules="rules"
-          ref="ruleForm"
+          ref="loginRef"
           class="login-form"
       >
         <!-- 用户名输入框 -->
@@ -16,7 +16,6 @@
               v-model="loginForm.username"
               prefix-icon="el-icon-user-solid"
               placeholder="用户名"
-              @keyup.enter.native="login"
           />
         </el-form-item>
         <!-- 密码输入框 -->
@@ -26,33 +25,51 @@
               prefix-icon="iconfont icon-mima"
               show-password
               placeholder="密码"
-              @keyup.enter.native="login"
+              @keyup.enter.native="handleLogin"
           />
         </el-form-item>
       </el-form>
       <!-- 登录按钮 -->
-      <el-button type="primary" @click="login">登录</el-button>
+      <el-button type="primary" @click="handleLogin">登录</el-button>
     </div>
   </div>
 </template>
 
-<script>
-export default {
-  data: function() {
-    return {
-      loginForm: {
-        username: "",
-        password: ""
-      },
-      rules: {
-        username: [
-          { required: true, message: "用户名不能为空", trigger: "blur" }
-        ],
-        password: [{ required: true, message: "密码不能为空", trigger: "blur" }]
-      }
-    };
-  },
+<script setup>
+
+import {getCurrentInstance, ref} from "vue";
+import Cookies from "js-cookie";
+import store from "@/store";
+import router from "@/router";
+const { proxy } = getCurrentInstance();
+const redirect = ref(undefined);
+
+const loginForm = ref({
+  username: '',
+  password: ''
+})
+
+const rules = {
+  username: [{ required: true, message: "用户名不能为空", trigger: "blur" }],
+  password: [{ required: true, message: "密码不能为空", trigger: "blur" }]
 }
+
+const loading = ref(false);
+
+function handleLogin() {
+  proxy.$refs.loginRef.validate(valid => {
+    if (valid) {
+      loading.value = true;
+      // 调用action的登录方法
+      store.dispatch("Login", loginForm.value).then(() => {
+        router.push({ path: redirect.value || "/" });
+      }).catch(() => {
+        loading.value = false;
+      });
+    }
+  });
+}
+
 </script>
 
 <style scoped>

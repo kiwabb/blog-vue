@@ -1,7 +1,7 @@
 import { createRouter, createWebHashHistory } from 'vue-router'
 
 
-const routes = [
+export const constantRoutes = [
   {
     path: '/',
     name: 'Home',
@@ -91,10 +91,13 @@ const routes = [
 
 const router = createRouter({
   history: createWebHashHistory(),
-  routes
+  routes: constantRoutes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) {
+      return savedPosition
+    } else {
+      return { top: 0 }
+    }
+  },
 })
-export function resetRouter() {
-  const newRouter = createRouter();
-  router.matcher = newRouter.matcher;
-}
 export default router

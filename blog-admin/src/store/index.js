@@ -1,7 +1,11 @@
 import { createStore } from 'vuex'
-import moment from "moment";
+import user from './modules/user'
+import getters from "@/store/getters";
+import settings from "@/store/modules/settings";
+import permission from "@/store/modules/permission";
 
-export default createStore({
+const store = createStore({
+
   state: {
     collapse: false,
     tabList: [{ name: "index", path: "/", mate: '主页' }],
@@ -32,5 +36,11 @@ export default createStore({
 
   },
   modules: {
+    user,
+    settings,
+    permission
   },
-})
+  getters
+});
+
+export default store

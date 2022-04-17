@@ -7,6 +7,8 @@ import store from './store'
 import "./assets/css/index.css";
 import './assets/iconfont/iconfont.css'
 import moment from "moment"
+//cookies
+import Cookies from 'js-cookie'
 //md
 import VueMarkdownEditor from '@kangc/v-md-editor';
 import '@kangc/v-md-editor/lib/style/base-editor.css';
