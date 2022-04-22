@@ -40,11 +40,11 @@
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
     >
       <!-- 菜单名称 -->
-      <el-table-column prop="menuName" label="菜单名称" width="140" />
+      <el-table-column prop="name" label="菜单名称" width="160" />
       <!-- 菜单icon -->
       <el-table-column prop="icon" align="center" label="图标" width="100">
         <template #default="scope">
-          <i :class="'iconfont ' + scope.row.menuIcon" />
+          <i :class="'iconfont ' + scope.row.icon" />
         </template>
       </el-table-column>
       <!-- 菜单排序 -->
@@ -55,9 +55,9 @@
           width="100"
       />
       <!-- 访问路径 -->
-      <el-table-column prop="menuPath" label="访问路径" />
+      <el-table-column prop="path" label="访问路径" />
       <!-- 组件路径 -->
-      <el-table-column prop="menuComponent" label="组件路径" />
+      <el-table-column prop="component" label="组件路径" />
       <!-- 是否隐藏 -->
       <el-table-column prop="isHidden" label="隐藏" align="center" width="80">
         <template #default="scope">
@@ -67,7 +67,6 @@
               inactive-color="#F4F4F5"
               :active-value="1"
               :inactive-value="0"
-              @change="changeHidden(scope.row)"
           />
         </template>
       </el-table-column>
@@ -80,7 +79,6 @@
               inactive-color="#F4F4F5"
               :active-value="1"
               :inactive-value="0"
-              @change="changeDisable(scope.row)"
           />
         </template>
       </el-table-column>
@@ -155,11 +153,11 @@
           </el-radio-group>
         </el-form-item>
         <!-- 菜单名称 -->
-        <el-form-item label="菜单名称" prop="menuName">
-          <el-input v-model="menuForm.menuName" style="width:220px" />
+        <el-form-item label="菜单名称" prop="name">
+          <el-input v-model="menuForm.name" style="width:220px" />
         </el-form-item>
         <!-- 菜单图标 -->
-        <el-form-item label="菜单图标" prop="menuIcon">
+        <el-form-item label="菜单图标" prop="icon">
           <el-popover placement="bottom-start" width="300px" trigger="click">
             <el-row :gutter="20">
               <el-col
@@ -174,7 +172,7 @@
             </el-row>
             <template #reference>
               <el-input
-                  :prefix-icon="'iconfont ' + menuForm.menuIcon"
+                  :prefix-icon="'iconfont ' + menuForm.icon"
                   slot="reference"
                   v-model="menuForm.icon"
                   style="width:220px"
@@ -184,11 +182,11 @@
         </el-form-item>
         <!-- 组件路径 -->
         <el-form-item label="组件路径" v-show="!isCatalog">
-          <el-input v-model="menuForm.menuComponent" style="width:220px" />
+          <el-input v-model="menuForm.component" style="width:220px" />
         </el-form-item>
         <!-- 路由地址 -->
-        <el-form-item label="访问路径" prop="menuPath">
-          <el-input v-model="menuForm.menuPath" style="width:220px" />
+        <el-form-item label="访问路径" prop="path">
+          <el-input v-model="menuForm.path" style="width:220px" />
         </el-form-item>
         <!-- 显示排序 -->
         <el-form-item label="显示排序">
@@ -218,7 +216,7 @@
 </template>
 
 <script>
-import {ElMessage} from "element-plus";
+import {changeDisable, changeHidden, deleteMenu, listMenu, saveOrUpdateMenu} from "@/api/menu";
 
 export default {
   name: "Menu",
@@ -226,17 +224,17 @@ export default {
     return {
       menuTitle: "",
       keywords: "",
-      loading: true,
+      loading: false,
       addMenu: false,
       isCatalog: true,
       show: true,
       menuList: [],
       menuForm: {
         id: null,
-        menuName: "",
-        menuIcon: "",
-        menuComponent: "",
-        menuPath: "",
+        name: "",
+        icon: "",
+        component: "",
+        path: "",
         orderNum: 1,
         parentId: null,
         isHidden: 0,
@@ -255,9 +253,9 @@ export default {
         "icon-liuyan"
       ],
       rules : {
-        menuName: [{ required: true, message: '菜单名不能为空！', trigger: blur }],
-        menuIcon: [{ required: true, message: '图标不能为空！', trigger: blur }],
-        menuPath: [{ required: true, message: '路径不能为空！', trigger: blur }],
+        name: [{ required: true, message: '菜单名不能为空！', trigger: blur }],
+        icon: [{ required: true, message: '图标不能为空！', trigger: blur }],
+        path: [{ required: true, message: '路径不能为空！', trigger: blur }],
       }
     };
   },
@@ -273,10 +271,10 @@ export default {
           case 1:
             this.menuForm = {
               id: null,
-              menuName: "",
-              menuIcon: "",
-              menuComponent: "",
-              menuPath: "",
+              name: "",
+              icon: "",
+              component: "",
+              path: "",
               orderNum: 1,
               parentId: 0,
               isHidden: 0,
@@ -296,10 +294,10 @@ export default {
         this.show = true;
         this.menuForm = {
           id: null,
-          menuName: "",
-          menuIcon: "",
-          menuComponent: "Layout",
-          menuPath: "",
+          name: "",
+          icon: "",
+          component: "Layout",
+          path: "",
           orderNum: 1,
           parentId: 0,
           isHidden: 0,
@@ -309,73 +307,48 @@ export default {
       this.addMenu = true;
     },
     listMenus() {
-      this.$axios
-          .get("/api/user/menu", {
-            params: {
-              keywords: this.keywords
-            }
-          })
-          .then(({ data }) => {
-            this.menuList = data.data;
-            this.loading = false;
-          });
+      const params =  {
+        keywords: this.keywords
+      }
+      listMenu(params).then(request => {
+        this.menuList = request.data;
+        this.loading = false;
+      })
     },
     checkIcon(icon) {
-      this.menuForm.menuIcon = icon;
+      this.menuForm.icon = icon;
     },
-    changeHidden(row) {
-      this.$axios.post("/api/user/hidden", {
-        params: {
-          id: row.id,
-          isHidden: row.isHidden
-        }
-      }).then( res => {
-        if (res.data.code === 0) {
-          ElMessage.success("修改成功！");
-        } else {
-          ElMessage.error(res.data.message)
-        }
-      })
-    },
-    changeDisable(row) {
-      this.$axios.post("/api/auth/disable", {
-        params: {
-          id: row.id,
-          isDisable: row.isDisable
-        }
-      }).then( res => {
-        if (res.data.code === 0) {
-          ElMessage.success("修改成功！");
-        } else {
-          ElMessage.error(res.data.message)
-        }
-      })
-    },
+    // changeHidden(row) {
+    //   const params = {
+    //     id: row.id,
+    //     isHidden: row.isHidden
+    //   }
+    //   changeHidden(params)
+    //
+    // },
+    // changeDisable(row) {
+    //   const params = {
+    //     id: row.id,
+    //     isDisable: row.isDisable
+    //   }
+    //   changeDisable(params)
+    // },
+
     deleteMenu(id) {
-      this.$axios.delete("/api/auth", {
-        params: {
-          id: id,
-        }
-      }).then( res => {
-        if (res.data.code === 0) {
-          ElMessage.success("删除成功！");
-        } else {
-          ElMessage.error(res.data.message)
-        }
+      const params = {
+        id: id,
+      }
+      deleteMenu(params).then(() => {
+        this.listMenus()
       })
     },
     saveOrUpdateMenu(formName) {
       this.$refs[formName].validate((valid) => {
         if (valid) {
-          this.$axios.post("/api/user/menu", this.menuForm).then(({ data }) => {
-            if (data.code === 0) {
-              ElMessage.success("操作成功！");
-              this.listMenus();
-            } else {
-              ElMessage.error("操作失败!");
-            }
+          saveOrUpdateMenu(this.menuForm).then(request => {
+            this.listMenus()
             this.addMenu = false;
-          });
+          })
         } else {
           return false;
         }

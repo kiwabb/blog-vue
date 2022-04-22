@@ -1,5 +1,5 @@
 import {getToken, removeToken, setToken} from "@/utils/auth";
-import {login, logout} from "@/api/login";
+import {getInfo, login, logout} from "@/api/login";
 
 const user = {
     state: {
@@ -34,12 +34,13 @@ const user = {
             const username = userInfo.username.trim();
             const password = userInfo.password;
             const client_id = 'web-client';
-            const client_secret = 'secret';
+            const client_secret = 'admin';
             const grant_type = 'password';
+            const type = 0;
             return new Promise(((resolve, reject) => {
-                login(username, password, client_id, client_secret, grant_type).then(res => {
-                    setToken(res.token)
-                    commit('SET_TOKEN', res.token)
+                login(username, password, client_id, client_secret, grant_type, type).then(res => {
+                    setToken(res.access_token)
+                    commit('SET_TOKEN', res.access_token)
                     resolve()
                 }).catch(error => {
                     reject(error)
@@ -51,16 +52,16 @@ const user = {
         GetInfo({ commit, state }) {
             return new Promise((resolve, reject) => {
                 getInfo().then(res => {
-                    const user = res.user
-                    const avatar = (user.avatar === "" || user.avatar == null) ? defAva : '/api' + user.avatar;
-
-                    if (res.roles && res.roles.length > 0) { // 验证返回的roles是否是一个非空数组
-                        commit('SET_ROLES', res.roles)
-                        commit('SET_PERMISSIONS', res.permissions)
+                    const user = res.data
+                    const avatar = user.avatar;
+//{"msg":"success","code":0,"data":{"id":"1","username":"admin","password":null,"avatar":null,"email":"111@qq.com","roleList":["ROLE_admin"],"isDisable":0,"accountNonExpired":true,"accountNonLocked":true,"credentialsNonExpired":true,"authorities":[{"authority":"ROLE_admin"}],"enabled":true}}
+                    if (user.roleList && user.roleList.length > 0) { // 验证返回的roles是否是一个非空数组
+                        commit('SET_ROLES', user.roleList)
+                        commit('SET_PERMISSIONS', null)
                     } else {
                         commit('SET_ROLES', ['ROLE_DEFAULT'])
                     }
-                    commit('SET_NAME', user.userName)
+                    commit('SET_NAME', user.username)
                     commit('SET_AVATAR', avatar)
                     resolve(res)
                 }).catch(error => {

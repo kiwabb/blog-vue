@@ -2,38 +2,67 @@
   <div>
     <!-- 导航栏 -->
     <div class="nav-bar">
-      <div class="hamburger-container" @click="trigger">
+      <!-- 折叠按钮 -->
+      <div class="hambuger-container" @click="trigger">
         <i :class="isFold" />
       </div>
+      <!-- 面包屑导航 -->
       <el-breadcrumb>
         <el-breadcrumb-item v-for="item of breadcrumbList" :key="item.path">
           <span v-if="item.redirect">{{ item.name }}</span>
-          <router-link v-else :to="item.path">{{ item.meta.name }}</router-link>
+          <router-link v-else :to="item.path">{{ item.name }}</router-link>
         </el-breadcrumb-item>
       </el-breadcrumb>
+      <!-- 右侧菜单 -->
       <div class="right-menu">
         <!-- 全屏按钮 -->
         <div class="screen-full" @click="fullScreen">
-          <i class="iconfont icon-quanping 48px" />
+          <i class="el-icon-s-unfold" />
         </div>
         <!-- 用户选项 -->
-        <el-dropdown>
-          <el-avatar :size="40" :src="this.$store.state.avatar" />
+        <el-dropdown @command="handleCommand">
+
+          <el-avatar :size="40" :src="this.$store.getters.avatar" />
           <i class="el-icon-caret-bottom" />
-          <el-dropdown-menu slot="dropdown">
-            <el-dropdown-item command="setting">
-              <i class="el-icon-s-custom" />个人中心
-            </el-dropdown-item>
-            <el-dropdown-item command="logout" divided>
-              <i class="iconfont icon-dengchu" />退出登录
-            </el-dropdown-item>
-          </el-dropdown-menu>
+          <template #dropdown>
+            <el-dropdown-menu slot="dropdown">
+              <el-dropdown-item command="setting">
+                <i class="el-icon-s-custom" />个人中心
+              </el-dropdown-item>
+              <el-dropdown-item command="logout" divided>
+                <i class="iconfont el-icon-mytuichu" />退出登录
+              </el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
         </el-dropdown>
+      </div>
+    </div>
+    <div class="tabs-view-container">
+      <div class="tabs-wrapper">
+        <span
+            :class="isActive(item)"
+            v-for="item of breadcrumbList"
+            :key="item.path"
+            @click="goTo(item)"
+        >
+          {{ item.name }}
+          <i
+              class="el-icon-close"
+              v-if="item.path !== '/'"
+              @click.stop="removeTab(item)"
+          />
+        </span>
+      </div>
+      <div class="tabs-close-item" style="float:right" @click="closeAllTab">
+        全部关闭
       </div>
     </div>
   </div>
 </template>
+
 <script>
+import store from "@/store";
+
 export default {
   data: function() {
     return {
@@ -43,25 +72,32 @@ export default {
     };
   },
   created() {
-    //替换面包屑导航
-    let matched = this.$route.matched.filter(item => item.name);
-    const first = matched[0];
-    if (first && first.name !== "index") {
-      matched = [{ path: "/", name: "index", meta: {name : '首页'} }].concat(matched);
-    }
-    console.log(this.$route.meta);
-    console.log(this.$route.matched.filter(item => item.name));
-    console.log(matched);
-    this.breadcrumbList = matched;
-    //保存当前页标签
-    this.$store.commit("saveTab", this.$route);
+    console.log(store.getters.avatar)
   },
   methods: {
+    goTo(tab) {
+      //跳转标签
+      this.$router.push({ path: tab.path });
+    },
+    removeTab(tab) {
+      //删除标签
+      //this.$store.commit("removeTab", tab);
+      //如果删除的是当前页则返回上一标签页
+      if (tab.path === this.$route.path) {
+        let tabList = this.$store.state.tabList;
+        this.$router.push({ path: tabList[tabList.length - 1].path });
+      }
+    },
+    closeAllTab() {
+      this.$store.commit("resetTab");
+      this.$router.push({ path: "/" });
+    },
     trigger() {
-      this.$store.commit("trigger");
+      //this.$store.commit("trigger");
     },
     handleCommand(command) {
-/*      if (command === "setting") {
+      // TODO
+      if (command === "setting") {
         this.$router.push({ path: "/setting" });
       }
       if (command === "logout") {
@@ -71,11 +107,9 @@ export default {
         this.$store.commit("logout");
         this.$store.commit("resetTab");
         // 清空用户菜单
-        resetRouter();
         this.$router.push({ path: "/login" });
-      }*/
+      }
     },
-
     fullScreen() {
       let element = document.documentElement;
       if (this.fullscreen) {
@@ -102,14 +136,23 @@ export default {
       this.fullscreen = !this.fullscreen;
     }
   },
-
   computed: {
     isFold() {
-      return this.$store.state.collapse ? "el-icon-s-unfold" : "el-icon-s-fold";
-    }
+      return "el-icon-s-unfold"
+    },
+    //标签是否处于当前页
+    isActive() {
+      return function(tab) {
+        if (tab.path === this.$route.path) {
+          return "tabs-view-item-active";
+        }
+        return "tabs-view-item";
+      };
+    },
   }
 }
 </script>
+
 <style scoped>
 .nav-bar {
   display: flex;
@@ -119,12 +162,20 @@ export default {
   height: 50px;
   box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
 }
-.hamburger-container {
+.hambuger-container {
   font-size: 1.25rem;
   cursor: pointer;
   margin-right: 24px;
 }
+.tabs-wrapper {
+  overflow-x: auto;
+  overflow-y: hidden;
+  white-space: nowrap;
+  width: 95%;
+}
 .tabs-view-container {
+  display: flex;
+  position: relative;
   padding-left: 10px;
   padding-right: 10px;
   height: 33px;
@@ -133,6 +184,21 @@ export default {
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.12), 0 0 3px 0 rgba(0, 0, 0, 0.04);
 }
 .tabs-view-item {
+  display: inline-block;
+  cursor: pointer;
+  height: 25px;
+  line-height: 25px;
+  border: 1px solid #d8dce5;
+  color: #495060;
+  background: #fff;
+  padding: 0 8px;
+  font-size: 12px;
+  margin-top: 4px;
+  margin-left: 5px;
+}
+.tabs-close-item {
+  position: absolute;
+  right: 10px;
   display: inline-block;
   cursor: pointer;
   height: 25px;
@@ -189,5 +255,13 @@ export default {
   cursor: pointer;
   margin-right: 1rem;
   font-size: 1.25rem;
+}
+*::-webkit-scrollbar {
+  width: 0.5rem;
+  height: 6px;
+}
+*::-webkit-scrollbar-thumb {
+  border-radius: 0.5rem;
+  background-color: rgba(144, 147, 153, 0.3);
 }
 </style>

@@ -172,11 +172,13 @@
 
 <script>
 import {ElMessage} from "element-plus";
+import {changeDisable, editUserRole, listUsers} from "@/api/adminUser";
+import {listRoles} from "@/api/role";
 
 export default {
   created() {
     this.listUsers();
-    //this.listRoles();
+    this.listRoles();
   },
   data: function() {
     return {
@@ -210,10 +212,11 @@ export default {
       this.listUsers();
     },
     changeDisable(user) {
-      this.axios.put("/api/user/users/disable", {
+      const query = {
         id: user.userInfoId,
         isDisable: user.isDisable
-      });
+      }
+      changeDisable(query)
     },
     openEditModel(user) {
       this.roleIdList = [];
@@ -225,37 +228,29 @@ export default {
     },
     editUserRole() {
       this.userForm.roleIdList = this.roleIdList;
-      this.$axios
-          .put("/api/admin/users/role", this.userForm)
-          .then(({ data }) => {
-            if (data.code === 0) {
-              ElMessage.success(data.msg);
-              this.listUsers();
-            } else {
-              ElMessage.error(data.msg);
-            }
-            this.isEdit = false;
-          });
+      console.log(this.userForm)
+      this.userForm.createTime = null
+      editUserRole(this.userForm).then(res => {
+        this.listUsers();
+        this.isEdit = false;
+      })
     },
     listUsers() {
-      this.$axios
-          .get("/api/user/admin-user", {
-            params: {
-              current: this.current,
-              size: this.size,
-              keywords: this.keywords,
-            }
-          })
-          .then(({ data }) => {
-            this.userList = data.data.recordList;
-            this.count = data.data.count;
-            this.loading = false;
-          });
+      const params = {
+        current: this.current,
+        size: this.size,
+        keywords: this.keywords,
+      }
+      listUsers(params).then(res => {
+        this.userList = res.data.recordList;
+        this.count = res.data.count;
+        this.loading = false;
+      })
     },
     listRoles() {
-      this.$axios.get("/api/user/role").then(({ data }) => {
-        this.userRoleList = data.data;
-      });
+      listRoles().then(res => {
+        this.userRoleList = res.data.recordList;
+      })
     }
   },
   watch: {

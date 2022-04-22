@@ -155,6 +155,7 @@
 
 <script>
 import {ElMessage} from "element-plus";
+import {addOrEditResource, changeResource, deleteResource, listResources} from "@/api/interface";
 
 export default {
   created() {
@@ -164,38 +165,26 @@ export default {
     return {
       moduleTitle: "",
       resourceTitle: "",
-      loading: true,
+      loading: false,
       keywords: "",
       resourceList: [],
       addModule: false,
       addResource: false,
       resourceForm: {
         parentId: "0",
+        isAnonymous: 0
       }
     };
   },
   methods: {
     listResources() {
-      this.$axios
-          .get("/api/user/interface", {
-            params: {
-              keywords: this.keywords
-            }
-          })
-          .then(({ data }) => {
-            this.resourceList = data.data;
-            this.loading = false;
-          });
-    },
-    changeResource(resource) {
-      this.$axios.post("/api/user/interface", resource).then(({ data }) => {
-        if (data.code === 0) {
-          ElMessage.success(data.message);
-          this.listResources();
-        } else {
-          ElMessage.error(data.message);
-        }
-      });
+      const params = {
+        keywords: this.keywords
+      }
+      listResources(params).then(res => {
+        this.resourceList = res.data;
+        this.loading = false;
+      })
     },
     openModel(resource) {
       this.resourceForm.parentId = "0";
@@ -224,32 +213,24 @@ export default {
       this.addResource = true;
     },
     deleteResource(id) {
-      this.$axios.delete("/api/user/interface/" + id).then(({ data }) => {
-        if (data.code === 0) {
-          ElMessage.success(data.msg);
-          this.listResources();
-        } else {
-          ElMessage.error(data.msg);
-        }
-      });
+      deleteResource(id).then(() => {
+        this.listResources();
+      })
     },
     addOrEditResource() {
       if (this.resourceForm.resourceName === "") {
         ElMessage.error("资源名不能为空");
         return false;
       }
-      this.$axios
-          .post("/api/user/interface", this.resourceForm)
-          .then(({ data }) => {
-            if (data.code === 0) {
-              ElMessage.success(data.msg);
-              this.listResources();
-            } else {
-              ElMessage.error(data.msg);
-            }
-            this.addModule = false;
-            this.addResource = false;
-          });
+      if (this.resourceForm.parentId === null || this.resourceForm.parentId === undefined) {
+        this.resourceForm.parentId = 0;
+      }
+      this.resourceForm.isAnonymous = 0
+      addOrEditResource(this.resourceForm).then(() => {
+        this.listResources();
+        this.addModule = false;
+        this.addResource = false;
+      })
     }
   },
   computed: {

@@ -13,16 +13,17 @@ axios.defaults.headers['Content-Type'] = 'application/json;charset=utf-8'
 // 创建axios实例
 const service = axios.create({
     // 超时
-    timeout: 10000
+    timeout: 1000000000000
 })
 
 // request请求拦截器
 service.interceptors.request.use(config => {
+    config.headers['Content-Type'] = 'application/json;charset=utf-8'
     // 是否需要设置 token
-    const isToken = (config.headers || {}).isToken === true
+    const isToken = (config.headers || {}).isToken === false
     // 是否需要防止数据重复提交
     const isRepeatSubmit = (config.headers || {}).repeatSubmit === true
-    if (getToken() && isToken) {
+    if (getToken() && !isToken) {
         config.headers['Authorization'] = 'Bearer ' + getToken() // 让每个请求携带自定义token 请根据实际情况自行修改
     }
     // get请求映射params参数
@@ -32,8 +33,8 @@ service.interceptors.request.use(config => {
         config.params = {};
         config.url = url;
     }
-
     if (isRepeatSubmit && (config.method === 'post' || config.method === 'put')) {
+
         const requestObj = {
             url: config.url,
             data: typeof config.data === 'object' ? JSON.stringify(config.data) : config.data,

@@ -208,6 +208,14 @@
 
 <script>
 import {ElMessage} from "element-plus";
+import {
+  deleteRoles,
+  listInterfaces,
+  listMenus,
+  listRoles,
+  saveOrUpdateRoleMenu,
+  saveOrUpdateRoleResource
+} from "@/api/role";
 
 export default {
   created() {
@@ -256,25 +264,22 @@ export default {
       });
     },
     listRoles() {
-      this.$axios
-        .get("/api/user/role", {
-          params: {
+      const params = {
             current: this.current,
             size: this.size,
             keywords: this.keywords
-          }
-        })
-        .then(({ data }) => {
-          this.roleList = data.data.recordList;
-          this.count = data.data.count;
-          this.loading = false;
-        });
-      this.$axios.get("/api/user/interface/role/interfaces").then(({ data }) => {
-        this.resourceList = data.data;
-      });
-      this.$axios.get("/api/user/menu/role/menus").then(({ data }) => {
-        this.menuList = data.data;
-      });
+      }
+      listRoles(params).then(res => {
+        this.roleList = res.data.recordList;
+        this.count = res.data.count;
+        this.loading = false;
+      })
+      listInterfaces().then(res => {
+        this.resourceList = res.data;
+      })
+      listMenus().then(res => {
+        this.menuList = res.data;
+      })
     },
     deleteRoles(id) {
       let param = {};
@@ -283,15 +288,11 @@ export default {
       } else {
         param = { data: [id] };
       }
-      this.$axios.delete("/api/user/role", param).then(({ data }) => {
-        if (data.code === 0) {
-          ElMessage.success(data.message);
-          this.listRoles();
-        } else {
-          ElMessage.error(data.message);
-        }
+      deleteRoles(param).then(res => {
+        this.listRoles();
         this.isDelete = false;
-      });
+      })
+
     },
     openMenuModel(role) {
       this.$nextTick(function() {
@@ -320,15 +321,10 @@ export default {
     saveOrUpdateRoleResource() {
       this.roleForm.menuIdList = null;
       this.roleForm.resourceIdList = this.$refs.resourceTree.getCheckedKeys();
-      this.$axios.post("/api/user/role", this.roleForm).then(({ data }) => {
-        if (data.code === 0) {
-          ElMessage.success(data.message);
-          this.listRoles();
-        } else {
-          ElMessage.error(data.message);
-        }
+      saveOrUpdateRoleResource(this.roleForm).then(res => {
+        this.listRoles();
         this.roleResource = false;
-      });
+      })
     },
     saveOrUpdateRoleMenu() {
       if (this.roleForm.roleName.trim() === "") {
@@ -343,15 +339,11 @@ export default {
       this.roleForm.menuIdList = this.$refs.menuTree
         .getCheckedKeys()
         .concat(this.$refs.menuTree.getHalfCheckedKeys());
-      this.$axios.post("/api/user/role", this.roleForm).then(({ data }) => {
-        if (data.code === 0) {
-          ElMessage.success(data.message);
-          this.listRoles();
-        } else {
-          ElMessage.error(data.message);
-        }
+      saveOrUpdateRoleMenu(this.roleForm).then(res => {
+        this.listRoles();
         this.roleMenu = false;
-      });
+      })
+
     }
   }
 };

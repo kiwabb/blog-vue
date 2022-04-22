@@ -38,7 +38,6 @@
 <script setup>
 
 import {getCurrentInstance, ref} from "vue";
-import Cookies from "js-cookie";
 import store from "@/store";
 import router from "@/router";
 const { proxy } = getCurrentInstance();

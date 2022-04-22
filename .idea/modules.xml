@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../blog-github/blog/blog-vue/admin/.idea/admin.iml" filepath="$PROJECT_DIR$/../../blog-github/blog/blog-vue/admin/.idea/admin.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/blog-vue.iml" filepath="$PROJECT_DIR$/.idea/blog-vue.iml" />
     </modules>
   </component>
