@@ -4,11 +4,17 @@
     <div class="article-status-menu">
       <span>状态</span>
       <span @click="changeStatus('all')" :class="{'active-status' : activeStatus === 'all'}">全部</span>
+      <span @click="changeStatus('nocheck')" :class="{'active-status' : activeStatus === 'nocheck'}">
+        待审核
+      </span>
+      <span @click="changeStatus('check')" :class="{'active-status' : activeStatus === 'check'}">
+        已审核
+      </span>
+      <span @click="changeStatus('disable')" :class="{'active-status' : activeStatus === 'disable'}">
+        已下架
+      </span>
       <span @click="changeStatus('draft')" :class="{'active-status' : activeStatus === 'draft'}">
-        草稿箱
-    </span>
-      <span @click="changeStatus('delete')" :class="{'active-status' : activeStatus === 'delete'}">
-        回收站
+        草稿
       </span>
     </div>
     <!-- 表格操作 -->
@@ -118,6 +124,21 @@
       </el-table-column>
       <!-- 文章标题 -->
       <el-table-column prop="articleTitle" label="标题" align="center" />
+      <!-- 文章标题 -->
+      <el-table-column prop="nickname" label="作者" align="center" width="150" />
+      <!-- 文章分类 -->
+      <el-table-column
+          prop="status"
+          label="状态"
+          width="110"
+          align="center"
+      >
+        <template #default="scope">
+          <el-tag >
+            {{ articleStatus(scope) }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <!-- 文章分类 -->
       <el-table-column
           prop="categoryName"
@@ -169,6 +190,7 @@
           <span v-else>0</span>
         </template>
       </el-table-column>
+
       <!-- 文章发表时间 -->
       <el-table-column
           prop="createTime"
@@ -284,6 +306,9 @@
 
 <script>
 import message from "@/assets/js/message";
+import {changeTop, listArticles, logicDeleteArticle} from "@/api/article";
+import {listCategories} from "@/api/category";
+import {listTags} from "@/api/tag";
 
 export default {
   data: function() {
@@ -303,7 +328,7 @@ export default {
       current: 1,
       size: 10,
       count: 0,
-      loading: true,
+      loading: false,
     }
   },
   created() {
@@ -312,42 +337,54 @@ export default {
     this.listTags();
   },
   computed: {
+    articleStatus(scope) {
+      return function(scope) {
+        switch (scope.row.status) {
+          case 0:
+            return "待审核"
+          case 1:
+            return "已审核"
+          case 2:
+            return "违规下架"
+          case 3:
+            return "草稿"
+        }
+      }
+    }
   },
   methods: {
     editArticle(id) {
-      this.$router.push({ path: "/articles/" + id });
+      this.$router.push({ path: "/article/" + id });
     },
     changeTop(article) {
-      this.$axios
-          .put("/api/admin/articles/top", {
-            id: article.id,
-            top: article.top
-          })
-          .then(({ data }) => {
-            if (!data.code) {
-              message.success("修改成功"
-              );
-            } else {
-              message.error(data.message
-              );
-            }
-            this.remove = false;
-          });
+      let query = {
+        id: article.id,
+        top: article.top
+      }
+      changeTop(query).then(( data ) => {
+        if (!data.code) {
+          message.success("修改成功"
+          );
+        } else {
+          message.error(data.message
+          );
+        }
+      });
     },
     logicDeleteArticle(id) {
       let param = {};
       if (id != null) {
-        param = {data: [id]};
+        param = [id];
       } else {
-        param = {data: this.articleIdList};
+        param = this.articleIdList;
       }
-      this.$axios.delete("/api/admin/articles/logicDelete", param).then(({ data }) => {
+      logicDeleteArticle(param).then(({ data }) => {
         if (!data.code) {
           message.success("删除成功！");
           this.listArticles();
         } else {
           message.error(
-            data.message
+              data.message
           );
         }
         this.updateIsDelete = false;
@@ -356,9 +393,9 @@ export default {
     deleteArticles(id) {
       let param = {};
       if (id == null) {
-        param = { data: this.articleIdList };
+        param = this.articleIdList ;
       } else {
-        param = { data: [id] };
+        param = [id];
       }
       this.axios.delete("/api/admin/articles", param).then(({ data }) => {
         if (!data.code) {
@@ -389,51 +426,53 @@ export default {
       this.listArticles();
     },
     listCategories() {
-      this.$axios.get("/api/admin/category/allCategory").then(({ data }) => {
+      listCategories().then( (data) => {
         this.categoryList = data.data;
       });
     },
     listTags() {
-      this.$axios.get("/api/admin/tag/allTag").then(({ data }) => {
+      listTags().then(( data ) => {
         this.tagList = data.data;
       });
     },
     listArticles() {
-      this.$axios
-          .get("/api/admin/articles", {
-            params: {
-              current: this.current,
-              size: this.size,
-              keywords: this.keywords,
-              categoryId: this.categoryId,
-              tagId: this.tagId,
-              delete: this.isDelete
-            }
-          })
-          .then(({data} ) => {
-            this.articleList = data.data.recordList;
-            this.count = data.data.count;
-            this.loading = false;
-          });
+      let query = {
+        current: this.current,
+        size: this.size,
+        keywords: this.keywords,
+        categoryId: this.categoryId,
+        tagId: this.tagId,
+        status: this.status
+      }
+      listArticles(query).then((data) => {
+        this.articleList = data.data.recordList;
+        this.count = data.data.count;
+        this.loading = false;
+      });
     },
     changeStatus(status) {
       switch (status) {
         case "all":
-          this.isDelete = 0;
           this.status = null;
+          break;
+        case "nocheck":
+          this.status = 0;
+          break;
+        case "check":
+          this.status = 1;
+          break;
+        case "disable":
+          this.status = 2;
           break;
         case "draft":
-          this.isDelete = 0;
           this.status = 3;
-          break;
-        case "delete":
-          this.isDelete = 1;
-          this.status = null;
           break;
       }
       this.activeStatus = status;
+      this.listArticles()
     },
-  }
+  },
+
 }
 </script>
 

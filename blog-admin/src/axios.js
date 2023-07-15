@@ -1,6 +1,8 @@
 import axios from "axios"
 import ElementPlus, {ElMessage} from "element-plus";
 import router from "@/router";
+import {getToken} from "@/utils/auth";
+
 const request = axios.create({
     timeout: 5000,
     headers: {
@@ -8,7 +10,8 @@ const request = axios.create({
     }
 })
 request.interceptors.request.use(config => {
-    config.headers['Authorization'] = localStorage.getItem("token") // 请求头带上token
+    config.headers['Authorization'] = 'Bearer ' + getToken()  // 请求头带上token
+    console.log(getToken())
     return config
 })
 request.interceptors.response.use(response => {

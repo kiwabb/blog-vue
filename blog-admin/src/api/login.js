@@ -5,18 +5,18 @@ export function login(username, password, client_id, client_secret, grant_type, 
     let data = new FormData();
     data.append("username", username)
     data.append("password", password)
-    data.append("client_id", client_id)
-    data.append("client_secret", client_secret)
-    data.append("grant_type", grant_type)
     data.append("type", type)
+
+    let basicAuth = 'Basic ' + window.btoa('web-client:admin')
 
     return request({
         url: '/oauth/token',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+            Authorization: basicAuth,
             isToken: false
         },
         method: 'post',
+        params: {grant_type},
         data: data
     })
 }

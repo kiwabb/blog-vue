@@ -1,6 +1,6 @@
 <template>
   <el-card class="main-card">
-    <div class="title">{{ this.$route.meta.name }}</div>
+    <div class="title">{{ this.$route.name }}</div>
     <!-- 表格操作 -->
     <div class="operation-container">
       <el-button
@@ -143,6 +143,7 @@
 <script>
 
 import message from "@/assets/js/message";
+import {addOrEditCategory, deleteCategory, listCategories} from "@/api/category";
 
 
 export default {
@@ -195,43 +196,39 @@ export default {
         message.error('分类名不能为空');
         return false;
       }
-      this.$axios
-          .put("/api/admin/category/addCategory", this.categoryForm)
-          .then(({data}) => {
-            if (!data.code) {
-              message.success(data.msg);
-              this.listCategories();
-            } else {
-              message.error(data.msg);
-            }
-            this.addOrEdit = false;
-          });
+      addOrEditCategory(this.categoryForm)
+        .then((data) => {
+          if (!data.code) {
+            message.success(data.msg);
+            this.listCategories();
+          } else {
+            message.error(data.msg);
+          }
+          this.addOrEdit = false;
+        });
     },
     listCategories() {
-      this.$axios
-          .get("/api/admin/category/allCategory", {
-            params: {
-              page: this.page,
-              size: this.size,
-              keywords: this.keywords
-            }
-          })
-          .then(({data}) => {
-            console.log(data.data.recordList);
-            this.categoryList = data.data.recordList;
-            this.count = data.data.count;
-            this.loading = false;
-          });
-
+      let query = {
+        page: this.page,
+        size: this.size,
+        keywords: this.keywords
+      }
+      listCategories(query)
+        .then((data) => {
+          console.log(data.data.recordList);
+          this.categoryList = data.data.recordList;
+          this.count = data.data.count;
+          this.loading = false;
+        });
     },
     deleteCategory(id) {
       let param = {};
       if (id == null) {
-        param = {data: this.categoryIdList};
+        param = this.categoryIdList;
       } else {
-        param = { data: [id] };
+        param = [id];
       }
-      this.$axios.delete("/api/admin/category/deleteCategory", param).then(({ data }) => {
+      deleteCategory(param).then(( data ) => {
         if (!data.code) {
           message.success(data.msg);
           this.listCategories();
@@ -240,7 +237,6 @@ export default {
         }
         this.isDelete = false;
       });
-
     },
     deleteRow(index, rows) {
       rows.splice(index, 1)

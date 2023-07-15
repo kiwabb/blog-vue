@@ -2,7 +2,6 @@
 import request from "@/utils/request";
 
 export const getRouters = () => {
-
     return request({
         url: '/user/admin-user/menus',
         method: 'get',
@@ -41,7 +40,7 @@ export function changeDisable(query) {
         headers: {
             isToken: true
         },
-        date: query
+        data: query
     })
 }
 

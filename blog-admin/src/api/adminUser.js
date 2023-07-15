@@ -23,7 +23,7 @@ export function editUserRole(query) {
     })
 }
 
-export function listUsers(query) {
+export function listAdminUsers(query) {
     return request({
         url: '/user/admin-user',
         method: 'get',

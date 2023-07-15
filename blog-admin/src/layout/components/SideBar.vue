@@ -58,7 +58,7 @@
   width: 210px;
 }
 .side-nav-bar {
-  height: 710px !important;
+  position: fixed;
   top: 0;
   left: 0;
   bottom: 0;

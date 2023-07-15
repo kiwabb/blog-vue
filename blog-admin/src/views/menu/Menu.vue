@@ -65,8 +65,9 @@
               v-model="scope.row.isHidden"
               active-color="#13ce66"
               inactive-color="#F4F4F5"
-              :active-value="1"
-              :inactive-value="0"
+              :active-value="true"
+              :inactive-value="false"
+              @click="changeHidden(scope.row)"
           />
         </template>
       </el-table-column>
@@ -77,8 +78,8 @@
               v-model="scope.row.isDisable"
               active-color="#13ce66"
               inactive-color="#F4F4F5"
-              :active-value="1"
-              :inactive-value="0"
+              :active-value="true"
+              :inactive-value="false"
           />
         </template>
       </el-table-column>
@@ -318,14 +319,14 @@ export default {
     checkIcon(icon) {
       this.menuForm.icon = icon;
     },
-    // changeHidden(row) {
-    //   const params = {
-    //     id: row.id,
-    //     isHidden: row.isHidden
-    //   }
-    //   changeHidden(params)
-    //
-    // },
+    changeHidden(row) {
+      const params = {
+        id: row.id,
+        isHidden: row.isHidden
+      }
+      saveOrUpdateMenu(params)
+
+    },
     // changeDisable(row) {
     //   const params = {
     //     id: row.id,

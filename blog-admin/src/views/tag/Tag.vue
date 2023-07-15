@@ -1,6 +1,6 @@
 <template>
   <el-card class="main-card">
-    <div class="title">{{ this.$route.meta.name }}</div>
+    <div class="title">{{ this.$route.name }}</div>
     <!-- 表格操作 -->
     <div class="operation-container">
       <el-button
@@ -133,6 +133,7 @@
 
 <script>
 import message from "@/assets/js/message";
+import {deleteTag, listTags} from "@/api/tag";
 
 export default {
   name: "Tag",
@@ -174,11 +175,11 @@ export default {
     deleteTag(id) {
       let param = {};
       if (id == null) {
-        param = { data: this.tagIdList };
+        param = this.tagIdList ;
       } else {
-        param = { data: [id] };
+        param =  [id] ;
       }
-      this.$axios.delete("/api/admin/tag/deleteTag", param).then(({ data }) => {
+      deleteTag(param).then(( data ) => {
         if (!data.code) {
           message.success(data.msg)
           this.listTags();
@@ -190,19 +191,20 @@ export default {
     },
 
     listTags() {
-      this.$axios
-          .get("/api/admin/tag/allTag", {
-            params: {
-              page: this.current,
-              size: this.size,
-              keywords: this.keywords
-            }
-          })
-          .then(({ data }) => {
-            this.tagList = data.data.recordList;
-            this.count = data.data.count;
-            this.loading = false;
-          });
+      let query = {
+        params: {
+          page: this.current,
+          size: this.size,
+          keywords: this.keywords
+        }
+      }
+      listTags(query).then(( data ) => {
+        this.tagList = data.data;
+        this.count = data.data.count;
+        this.loading = false;
+      });
+
+
     },
     openModel(tag) {
       if (tag != null) {
@@ -220,7 +222,7 @@ export default {
         message.error("标签名不能为空");
         return false;
       }
-      this.$axios.put("/api/admin/tag/addTag", this.tagForm).then(({ data }) => {
+      addOrEditTag(this.tagForm).then(( data ) => {
         if (!data.code) {
           message.success(data.msg)
           this.listTags();

@@ -70,17 +70,18 @@ const user = {
             })
         },
         // 退出系统
-        LogOut({ commit, state }) {
+        LogOut({ commit}) {
             return new Promise((resolve, reject) => {
-                logout(state.token).then(() => {
-                    commit('SET_TOKEN', '')
-                    commit('SET_ROLES', [])
-                    commit('SET_PERMISSIONS', [])
-                    removeToken()
-                    resolve()
-                }).catch(error => {
-                    reject(error)
-                })
+                commit('SET_TOKEN', '')
+                commit('SET_ROLES', [])
+                commit('SET_PERMISSIONS', [])
+                removeToken()
+                resolve()
+                // logout(state.token).then(() => {
+                //
+                // }).catch(error => {
+                //     reject(error)
+                // })
             })
         },
     }

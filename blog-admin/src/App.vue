@@ -1,48 +1,24 @@
 <template>
-  <el-container>
-    <el-aside width="auto">
-      <SideBar />
-    </el-aside>
-    <el-container>
-      <!-- 导航栏 -->
-      <el-header height="84px" style="padding:0" >
-        <NavBar :key="$route.fullPath" />
-      </el-header>
-      <!-- 内容 -->
-      <el-main style="background:#F7F9FB">
-        <div class="fade-transform-box">
-          <router-view v-slot="{ Component }">
-            <transition>
-              <component :is="Component" />
-            </transition>
-          </router-view>
-        </div>
-      </el-main>
-    </el-container>
-  </el-container>
+  <index/>
 </template>
 
 <script>
-  import NavBar from "@/layout/components/NavBar";
-  import SideBar from "@/layout/components/SideBar";
+  import Index from "@/layout";
   export default {
     components: {
-      NavBar,
-      SideBar
+      Index,
     },
     created() {
     },
+    computed: {
+      isHide() {
+        return this.$store.state.collapse ? "hideSideBar" : "";
+      }
+    }
   }
 </script>
 
 <style>
-.fade-transform-box {
-  position: relative;
-  top: 0;
-  bottom: 0;
-  width: 100%;
-  overflow: hidden;
-}
 .main-container {
   transition: margin-left 0.45s;
   margin-left: 210px;
@@ -65,8 +41,8 @@
 }
 .fade-transform-box {
   position: relative;
-  top: 0px;
-  bottom: 0px;
+  top: 0;
+  bottom: 0;
   width: 100%;
   overflow: hidden;
 }

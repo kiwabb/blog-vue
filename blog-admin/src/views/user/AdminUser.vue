@@ -57,7 +57,7 @@
           align="center"
           width="140"
       />
-      <el-table-column prop="roleList" label="用户角色" align="center">
+      <el-table-column prop="roleList" label="用户角色" align="center" width="200">
         <template #default="scope">
           <el-tag
               v-for="(item, index) of scope.row.roleList"
@@ -107,15 +107,30 @@
         </template>
       </el-table-column>
       <!-- 列操作 -->
-      <el-table-column label="操作" align="center" width="100">
+      <el-table-column label="操作" align="center">
         <template #default="scope">
           <el-button
-              type="primary"
+              type="text"
               size="mini"
               @click="openEditModel(scope.row)"
           >
-            编辑
+            <i class="el-icon-edit" />编辑
           </el-button>
+          <el-popconfirm
+              title="确定重制吗？"
+              style="margin-left:10px"
+              @confirm="resetPassword(scope.row.id)"
+          >
+            <template #reference>
+              <el-button
+                  size="mini"
+                  type="text"
+              >
+                <i class="el-icon-chicken"/>
+                重制密码
+              </el-button>
+            </template>
+          </el-popconfirm>
         </template>
       </el-table-column>
     </el-table>
@@ -145,6 +160,9 @@
         <el-form-item label="邮箱">
           <el-input v-model="userForm.email" style="width:220px" />
         </el-form-item>
+        <el-form-item label="密码" v-if="userForm.id === null">
+          <el-input v-model="userForm.password" show-password style="width:220px" />
+        </el-form-item>
         <el-form-item label="角色">
           <el-checkbox-group v-model="roleIdList">
             <el-checkbox
@@ -171,8 +189,7 @@
 </template>
 
 <script>
-import {ElMessage} from "element-plus";
-import {changeDisable, editUserRole, listUsers} from "@/api/adminUser";
+import {changeDisable, editUserRole, listAdminUsers} from "@/api/adminUser";
 import {listRoles} from "@/api/role";
 
 export default {
@@ -185,6 +202,7 @@ export default {
       loading: true,
       isEdit: false,
       userForm: {
+        id:null,
         userInfoId: null,
         nickname: ""
       },
@@ -220,10 +238,14 @@ export default {
     },
     openEditModel(user) {
       this.roleIdList = [];
-      this.userForm = JSON.parse(JSON.stringify(user));
-      this.userForm.roleList.forEach(item => {
-        this.roleIdList.push(item.id);
-      });
+      this.userForm.isDisable = 0;
+      if (user) {
+        this.userForm = JSON.parse(JSON.stringify(user));
+        this.userForm.roleList.forEach(item => {
+          this.roleIdList.push(item.id);
+        });
+        this.userForm.password = null;
+      }
       this.isEdit = true;
     },
     editUserRole() {
@@ -241,7 +263,7 @@ export default {
         size: this.size,
         keywords: this.keywords,
       }
-      listUsers(params).then(res => {
+      listAdminUsers(params).then(res => {
         this.userList = res.data.recordList;
         this.count = res.data.count;
         this.loading = false;
@@ -251,6 +273,13 @@ export default {
       listRoles().then(res => {
         this.userRoleList = res.data.recordList;
       })
+    },
+    resetPassword(id) {
+      let param = {
+        id: id,
+        password: "123456"
+      }
+      editUserRole(param)
     }
   },
   watch: {

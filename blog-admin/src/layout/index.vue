@@ -1,5 +1,26 @@
 <template>
-
+  <el-container v-if="this.$route.name !== 'login'">
+    <el-aside width="auto">
+      <SideBar />
+    </el-aside>
+    <el-container :class="'main-container ' + isHide">
+      <!-- 导航栏 -->
+      <el-header height="84px" style="padding:0" >
+        <NavBar :key="$route.fullPath" />
+      </el-header>
+      <!-- 内容 -->
+      <el-main style="background:#F7F9FB">
+        <div class="fade-transform-box">
+          <router-view v-slot="{ Component }">
+            <transition>
+              <component :is="Component" />
+            </transition>
+          </router-view>
+        </div>
+      </el-main>
+    </el-container>
+  </el-container>
+  <router-view v-else></router-view>
 </template>
 
 <script>

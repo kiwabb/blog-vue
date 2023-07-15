@@ -7,6 +7,9 @@ import store from './store'
 import "./assets/css/index.css";
 import './assets/iconfont/iconfont.css'
 import moment from "moment"
+import ECharts from 'vue-echarts'
+import { use } from "echarts/core";
+
 //cookies
 //md
 import VueMarkdownEditor from '@kangc/v-md-editor';
@@ -31,7 +34,6 @@ const whiteList = ['/login', '/auth-redirect', '/bind', '/register'];
 
 
 router.beforeEach((to, from, next) => {
-    console.log(111111111)
     NProgress.start()
     if (getToken()) {
         to.meta.title && store.dispatch('settings/setTitle', to.meta.title)
@@ -40,7 +42,6 @@ router.beforeEach((to, from, next) => {
             next({path: '/'})
             NProgress.done()
         } else {
-            console.log(111111111)
             if (store.getters.roles.length === 0) {
                 store.dispatch('GetInfo').then(() => {
                     store.dispatch('GenerateRoutes').then(res => {
@@ -54,12 +55,13 @@ router.beforeEach((to, from, next) => {
                             if (item.children && item.children.length > 0) {
                                 item.children.forEach(route => {
                                     route.icon = "iconfont " + route.icon;
+                                    route.hidden = route.isHidden
                                     route.component = loadView(route.component);
                                     router.addRoute(route);
                                 });
                             }
                         });
-                        console.log(router.getRoutes())
+                        console.log(res)
 
                         store.commit('SET_ROUTES', res)
                         next({...to, replace: true})
@@ -96,7 +98,11 @@ app.use(ElementPlus).use(ElementPlus).use(store).use(router).use(VueMarkdownEdit
 app.config.globalProperties.$filters = {
     dateFormat(value, formatStr="YYYY-MM-DD") {
         return moment(value).format(formatStr);
+    },
+    timeDateFormat(value, formatStr="YYYY-MM-DD hh:mm:ss") {
+        return moment(value).format(formatStr);
     }
 }
+app.component('v-chart', ECharts)
 app.config.globalProperties.$axios = request
 app.mount('#app');

@@ -4,6 +4,27 @@ import getters from "@/store/getters";
 import settings from "@/store/modules/settings";
 import permission from "@/store/modules/permission";
 
+const keyName = 'jackmouse-';
+/**
+ * 存储localStorage
+ */
+export const setStore = (params = {}) => {
+  let {
+    name,
+    content,
+    type,
+  } = params;
+  name = keyName + name
+  let obj = {
+    dataType: typeof (content),
+    content: content,
+    type: type,
+    datetime: new Date().getTime()
+  }
+  if (type) window.sessionStorage.setItem(name, JSON.stringify(obj));
+  else window.localStorage.setItem(name, JSON.stringify(obj));
+}
+
 const store = createStore({
 
   state: {

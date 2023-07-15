@@ -37,26 +37,7 @@
         </el-dropdown>
       </div>
     </div>
-    <div class="tabs-view-container">
-      <div class="tabs-wrapper">
-        <span
-            :class="isActive(item)"
-            v-for="item of breadcrumbList"
-            :key="item.path"
-            @click="goTo(item)"
-        >
-          {{ item.name }}
-          <i
-              class="el-icon-close"
-              v-if="item.path !== '/'"
-              @click.stop="removeTab(item)"
-          />
-        </span>
-      </div>
-      <div class="tabs-close-item" style="float:right" @click="closeAllTab">
-        全部关闭
-      </div>
-    </div>
+
   </div>
 </template>
 
@@ -101,11 +82,7 @@ export default {
         this.$router.push({ path: "/setting" });
       }
       if (command === "logout") {
-        // 调用注销接口
-        this.axios.post("/api/logout");
-        // 清空用户信息
-        this.$store.commit("logout");
-        this.$store.commit("resetTab");
+        store.dispatch("LogOut")
         // 清空用户菜单
         this.$router.push({ path: "/login" });
       }

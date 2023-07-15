@@ -7,22 +7,41 @@
           size="medium"
           placeholder="请输入文章标题"
       ></el-input>
-      <el-button
-          type="danger"
-          size="medium"
-          class="save-btn"
-          v-if="article.draft !== 0"
-          @click="saveArticleDraft"
+      <el-popconfirm
+          v-if="article.status === 0"
+          title="是否上架文章？"
+          style="margin-left:10px"
+          confirm-button-text="通过"
+          cancel-button-text="不通过"
+          @confirm="throughArticle"
+          @cancel="refuseArticle"
       >
-        保存草稿
-      </el-button>
-      <el-button
-        type="danger"
-        size="medium"
-        @click="openDialog"
-        style="margin-left:10px">
-        发布文章
-      </el-button>
+        <template #reference>
+          <el-button
+              size="mini"
+              type="danger"
+          >
+            审核
+          </el-button>
+        </template>
+      </el-popconfirm>
+      <el-popconfirm
+          v-if="article.status === 1"
+          title="确定下架文章？"
+          style="margin-left:10px"
+          confirm-button-text="确定"
+          cancel-button-text="取消"
+          @confirm="refuseArticle"
+      >
+        <template #reference>
+          <el-button
+              size="mini"
+              type="danger"
+          >
+            下架文章
+          </el-button>
+        </template>
+      </el-popconfirm>
     </div>
 <!--    文章内容-->
     <v-md-editor
@@ -107,6 +126,10 @@
 
 <script>
 import message from "@/assets/js/message";
+import {getArticleInfo, saveArticle} from "@/api/article";
+import {listCategories} from "@/api/category";
+import {listTags} from "@/api/tag";
+import {ElMessage} from "_element-plus@1.1.0-beta.24@element-plus";
 
 export default {
   data: function() {
@@ -123,14 +146,14 @@ export default {
         categoryId: "",
         tagIdList: [],
         top: 0,
-        draft: ""
+        status: 0
       }
     };
   },
   created() {
     let articleId = this.$route.params.id
     if (articleId) {
-      this.$axios.get("/api/admin/articles/" + articleId).then(({ data }) => {
+      getArticleInfo(articleId).then(( data ) => {
         this.article = data.data;
       });
     } else {
@@ -145,6 +168,24 @@ export default {
     this.autoSaveArticle();
   },
   methods: {
+
+    throughArticle() {
+      this.article.status = 1;
+      this.updateArticleStatus();
+
+    },
+    refuseArticle() {
+      this.article.status = 2;
+      this.updateArticleStatus();
+    },
+    updateArticleStatus() {
+      saveArticle(this.article).then(res => {
+        if (!res.code) {
+          this.$router.go(-1)
+          ElMessage.success("成功！")
+        }
+      })
+    },
     saveArticleDraft() {
       if (this.article.articleTitle.trim() === "") {
         message.error("文章标题不能为空");
@@ -155,7 +196,7 @@ export default {
         return false;
       }
       this.article.draft = 1;
-      this.axios.post("/api/admin/articles", this.article).then(({ data }) => {
+      saveArticle(this.article).then(( data ) => {
         if (!data.code) {
           message.success("保存草稿成功"
           );
@@ -175,17 +216,16 @@ export default {
           this.article.articleContent.trim() !== "" &&
           this.article.id != null
       ) {
-        this.axios
-            .post("/api/admin/articles", this.article)
-            .then(({ data }) => {
-              if (!data.code) {
-                message.success("自动保存成功"
-                );
-              } else {
-                message.error("自动保存失败"
-                );
-              }
-            });
+        saveArticle(this.article).then(( data ) => {
+          if (!data.code) {
+            message.success("自动保存成功"
+            );
+          } else {
+            message.error("自动保存失败"
+            );
+          }
+        });
+
       }
       // 保存本地文章记录
       if (this.autoSave && this.article.id == null) {
@@ -193,10 +233,10 @@ export default {
       }
     },
     initCategoryTagList() {
-      this.$axios.get("/api/admin/category/allCategory").then(({data}) => {
+      listCategories().then((data) => {
         this.categoryList = data.data;
       })
-      this.$axios.get("/api/admin/tag/allTag").then(({data}) => {
+      listTags().then((data) => {
         this.tagList = data.data;
       })
     },
@@ -237,12 +277,13 @@ export default {
         message.error("文章标签不能为空");
         return false;
       }
-      this.$axios.post("/api/admin/articles", this.article).then(({ data }) => {
+      saveArticle(this.article).then(( data ) => {
         if (!data.code) {
           message.success({
             title: "成功",
             message: data.message
           });
+          this.$router.push({ path: "/articleList/"});
         } else {
           message.error({
             title: "失败",
